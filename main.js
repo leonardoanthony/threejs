@@ -1,8 +1,6 @@
 import * as THREE from 'three';
 import WebGL from 'three/addons/capabilities/WebGL.js';
 
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-
 if ( WebGL.isWebGL2Available() ) {
 
 const scene = new THREE.Scene();
@@ -14,31 +12,47 @@ const renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 
-let shiba;
-const loader = new GLTFLoader();
+// const object = new THREE.Object3D();
+// object.updateMatrix();
+// object.matrixAutoUpdate = false;
+// scene.add( object );
 
-loader.load( './assets/shiba.glb', function ( gltf ) {
+const maxPoints = 500; // Capacidade máxima de vértices
+const positions = new Float32Array(maxPoints * 3); // Cada ponto tem (x, y, z)
 
-    shiba = gltf.scene;
-    shiba.rotation.y += .5;
-    shiba.scale.set(20,20,20); // Dobrar o tamanho
-	scene.add( shiba );
-}, undefined, function ( error ) {
+const geometry = new THREE.BufferGeometry();
+geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+geometry.setDrawRange(0, 2); // Inicialmente, desenha apenas dois pontos
 
-	console.error( error );
+const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
+const line = new THREE.Line(geometry, material);
+scene.add(line);
 
-} );
+let count = 2; // Começa com 2 pontos
+
+function addPoint(x, y, z) {
+    if (count >= maxPoints) return; // Se atingiu o limite, não adiciona mais
+    
+    positions[count * 3] = x;
+    positions[count * 3 + 1] = y;
+    positions[count * 3 + 2] = z;
+    
+    geometry.attributes.position.needsUpdate = true; // Indica que os dados mudaram
+    geometry.setDrawRange(0, count + 1); // Atualiza a quantidade de pontos visíveis
+    
+    count++;
+}
+
 
 function animate() {
-    if (shiba) { // Verifica se shiba já foi carregado
-        shiba.rotation.y -= 0.01;
-    }
     renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
 
 
-
+setInterval(() => {
+    addPoint(Math.random() * 30, Math.random() * 30, Math.random() * 30);
+}, 100);
 
 } else {
 
