@@ -18,7 +18,7 @@ const scene = new THREE.Scene();
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-controls.dampingFactor = 0.03;
+controls.dampingFactor = 0.01;
 
 const geometry = new THREE.IcosahedronGeometry(1, 3)
 const material = new THREE.MeshStandardMaterial({ 
@@ -41,12 +41,29 @@ mesh.add(wireMash);
 const hemiLight = new THREE.HemisphereLight(0x9999ff, 0xaa5500);
 scene.add(hemiLight);
 
+let speedX = 0;
+let speedY = 0;
+
 function animate(){
     requestAnimationFrame(animate);
-    mesh.rotation.y += 0.003
+    mesh.rotation.y += speedX / 1000
+    mesh.rotation.x += speedY / 1000
     renderer.render(scene, camera);
     controls.update();
 }
+
+document.getElementById('speedX').addEventListener('change', (e) => {
+    const value = e.target.value;
+    const textValue = document.getElementById('valueX');
+    textValue.innerText = value;
+    speedX = Number(value)*5;
+})
+document.getElementById('speedY').addEventListener('change', (e) => {
+    const value = e.target.value;
+    const textValue = document.getElementById('valueY');
+    textValue.innerText = value;
+    speedY = Number(value)*5;
+})
 
 animate();
 
