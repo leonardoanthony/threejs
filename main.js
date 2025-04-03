@@ -12,58 +12,55 @@ const aspect = w / h;
 const near = 0.1;
 const far = 1000;
 const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-camera.position.z = 3;
+camera.position.z = 50;
 
 const scene = new THREE.Scene();
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-controls.dampingFactor = 0.01;
+controls.dampingFactor = 0.005;
 
-const geometry = new THREE.IcosahedronGeometry(1, 3)
-const material = new THREE.MeshStandardMaterial({ 
-    color: 0xffffff,
-    flatShading: true, 
+//Create a PointLight and turn on shadows for the light
+const light = new THREE.PointLight( 0xffffff, 200, 30 );
+light.position.set( 0, 10, 20 );
+light.castShadow = true; // default false
+scene.add( light );
 
-}); 
-const mesh = new THREE.Mesh( geometry, material ); 
-scene.add( mesh );
+//Set up shadow properties for the light
+light.shadow.mapSize.width = 512; // default
+light.shadow.mapSize.height = 512; // default
+light.shadow.camera.near = 0.5; // default
+light.shadow.camera.far = 500; // default
 
-const wireMat = new THREE.MeshBasicMaterial({
-    color: 0xffffff,
-    wireframe: true
-})
+//Create a sphere that cast shadows (but does not receive them)
+const sphereGeometry = new THREE.SphereGeometry( 5, 32, 32 );
+const sphereMaterial = new THREE.MeshStandardMaterial( { color: 0xff0000 } );
+const sphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
+sphere.castShadow = true; //default is false
+sphere.receiveShadow = false; //default
+scene.add( sphere );
 
-const wireMash = new THREE.Mesh(geometry, wireMat);
-// wireMash.scale.setScalar(1.001);
-mesh.add(wireMash);
+//Create a plane that receives shadows (but does not cast them)
+const planeGeometry = new THREE.PlaneGeometry( 20, 20, 32, 32 );
+const planeMaterial = new THREE.MeshStandardMaterial( { color: 0x00ff00 } )
+const plane = new THREE.Mesh( planeGeometry, planeMaterial );
+plane.receiveShadow = true;
+scene.add( plane );
 
-const hemiLight = new THREE.HemisphereLight(0x9999ff, 0xaa5500);
-scene.add(hemiLight);
+//Create a helper for the shadow camera (optional)
+const helper = new THREE.CameraHelper( light.shadow.camera );
+scene.add( helper );
 
-let speedX = 0;
-let speedY = 0;
 
 function animate(){
     requestAnimationFrame(animate);
-    mesh.rotation.y += speedX / 1000
-    mesh.rotation.x += speedY / 1000
+    // mesh.rotation.x += 0.01;
+    // mesh.rotation.y += 0.02;
     renderer.render(scene, camera);
     controls.update();
 }
 
-document.getElementById('speedX').addEventListener('change', (e) => {
-    const value = e.target.value;
-    const textValue = document.getElementById('valueX');
-    textValue.innerText = value;
-    speedX = Number(value)*5;
-})
-document.getElementById('speedY').addEventListener('change', (e) => {
-    const value = e.target.value;
-    const textValue = document.getElementById('valueY');
-    textValue.innerText = value;
-    speedY = Number(value)*5;
-})
+
 
 animate();
 
